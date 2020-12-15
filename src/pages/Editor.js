@@ -1,33 +1,33 @@
 import { IonContent } from "@ionic/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
-import { SERVER_URL } from "../constants/constant";
+import { getEditorModelRequest } from "../actions/editorAction";
 import { appendScripts, appendStyles } from "../utils/utilFunc";
+// async function getModel(documentId) {
+//     const url = !!documentId
+//         ? SERVER_URL + `/h5p/edit/${documentId}`
+//         : SERVER_URL + `/h5p/new`;
 
-async function getModel(documentId) {
-    const url = !!documentId
-        ? SERVER_URL + `/h5p/edit/${documentId}`
-        : SERVER_URL + `/h5p/new`;
+//     let response = null;
+//     let payload = null;
+//     try {
+//         response = await fetch(url, {
+//             method: "GET",
+//             credentials: "include",
+//             headers: new Headers({
+//                 Accept: "application/json",
+//             }),
+//         });
+//     } catch (e) {
+//         console.log(e);
+//     }
 
-    let response = null;
-    let payload = null;
-    try {
-        response = await fetch(url, {
-            method: "GET",
-            credentials: "include",
-            headers: new Headers({
-                Accept: "application/json",
-            }),
-        });
-    } catch (e) {
-        console.log(e);
-    }
-
-    if (response && response.status === 200) {
-        payload = await response.json();
-    }
-    return payload;
-}
+//     if (response && response.status === 200) {
+//         payload = await response.json();
+//     }
+//     return payload;
+// }
 
 async function loadData(model, containerName, documentId) {
     appendStyles(model.styles, containerName);
@@ -44,22 +44,26 @@ async function loadData(model, containerName, documentId) {
 
 function Editor() {
     const containerName = "container";
-    const playUrl = "/h5p/play";
     const { documentId } = useParams();
-    const [model, setModel] = useState();
+    const dispatch = useDispatch();
+    const editorState = useSelector((state) => state.editor);
+    const model = editorState?.model;
+    const documentInfo = model?.hasOwnProperty(documentId)
+        ? model[documentId]
+        : null;
 
-    async function loadModel(documentId) {
-        setModel(await getModel(documentId));
-    }
+    // async function loadModel(documentId) {
+    //     setModel(await getModel(documentId));
+    // }
 
     useEffect(() => {
-        if (model) {
-            loadData(model, containerName, documentId);
+        if (documentInfo) {
+            loadData(documentInfo, containerName, documentId);
         } else {
-            // dispatch(getEditorModelRequest(documentId));
-            loadModel(documentId);
+            dispatch(getEditorModelRequest(documentId));
+            // loadModel(documentId);
         }
-    }, [documentId, model]);
+    }, [dispatch, documentId, documentInfo]);
 
     return (
         <IonContent id={containerName}>
@@ -81,7 +85,6 @@ function Editor() {
                     // style={{display: this.state.isShowing ? "inherit" : "none"}}
                 />
             </form>
-            <Link id="linkToPlay" to={`${playUrl}/${documentId}`}></Link>
         </IonContent>
     );
 }
@@ -186,7 +189,8 @@ const appendEditorScript = (containerName, documentId) => {
                         // Set params
                         $params.val(JSON.stringify(params));
                         // TODO check if this really works
-                        if (H5PEditor.contentId) {
+                        // if (H5PEditor.contentId) {
+                        if ('${documentId}') {
                             var editApiUrl = '/h5p/edit/${documentId}'
                         } else {
                             var editApiUrl = '/h5p/new/'
@@ -209,7 +213,7 @@ const appendEditorScript = (containerName, documentId) => {
                             const parsedResult = JSON.parse(result)
                             console.log(parsedResult)
                             if(parsedResult.documentId) {
-                                document.getElementById("linkToPlay").click();
+                                window.location = '/#/play/' + parsedResult.documentId;
                             }
                         });
 

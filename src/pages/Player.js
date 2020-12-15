@@ -34,14 +34,17 @@ function Player() {
     const { documentId } = useParams();
     const playerState = useSelector((state) => state.player);
     const model = playerState?.model;
+    const documentInfo = model?.hasOwnProperty(documentId)
+        ? model[documentId]
+        : null;
 
     useEffect(() => {
-        if (model) {
-            loadData(model, containerName);
+        if (documentInfo) {
+            loadData(documentInfo, containerName);
         } else {
             dispatch(getPlayerModelRequest(documentId));
         }
-    }, [dispatch, documentId, model]);
+    }, [dispatch, documentId, documentInfo]);
 
     return (
         <IonContent id={containerName}>

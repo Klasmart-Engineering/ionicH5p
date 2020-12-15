@@ -15,7 +15,7 @@ const reducer = (state = DEFAULT_STATE, action = {}) => {
         case types.GET_PLAYER_MODEL_SUCCESS:
             return {
                 ...state,
-                model: action.payload,
+                model: { [action.payload.documentId]: action.payload },
                 isLoading: false,
             };
         case types.GET_PLAYER_MODEL_FAILURE:
