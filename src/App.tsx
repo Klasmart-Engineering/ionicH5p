@@ -26,7 +26,6 @@ import Player from "./pages/Player";
 import reducer from "./reducers/rootReducer";
 import sagas from "./sagas/sagas";
 /* Theme variables */
-import "./styles/base.css";
 
 const sagaMiddleware = createSagaMiddleware();
 const middleware = [sagaMiddleware, logger];

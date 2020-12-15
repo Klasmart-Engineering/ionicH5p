@@ -1,17 +1,37 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { IonContent } from "@ionic/react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getEditorModelRequest } from "../actions/editorAction";
+import { SERVER_URL } from "../constants/constant";
 import { appendScripts, appendStyles } from "../utils/utilFunc";
-import { PLAY_URL, SERVER_URL } from "../constants/constant";
-import { IonContent } from '@ionic/react';
+
+async function getModel(documentId) {
+    const url = !!documentId
+        ? SERVER_URL + `/h5p/edit/${documentId}`
+        : SERVER_URL + `/h5p/new`;
+
+    let response = null;
+    let payload = null;
+    try {
+        response = await fetch(url, {
+            method: "GET",
+            credentials: "include",
+            headers: new Headers({
+                Accept: "application/json",
+            }),
+        });
+    } catch (e) {
+        console.log(e);
+    }
+
+    if (response && response.status === 200) {
+        payload = await response.json();
+    }
+    return payload;
+}
 
 async function loadData(model, containerName, documentId) {
-    console.log(model);
     appendStyles(model.styles, containerName);
     const script = document.createElement("script");
-    // model.integration.editor.assets.css = model.integration.editor.assets.css.map(style => SERVER_URL + style)
-    // model.integration.editor.assets.js= model.integration.editor.assets.js.map(script => SERVER_URL + script)
     script.innerHTML = `H5PIntegration = ${JSON.stringify(
         model.integration,
         null,
@@ -24,20 +44,22 @@ async function loadData(model, containerName, documentId) {
 
 function Editor() {
     const containerName = "container";
-    const dispatch = useDispatch();
-    const { documentId } = useParams();
-    const editorState = useSelector((state) => state.editor);
-    const model = editorState?.model;
-    // const paramsUrl = SERVER_URL + "/h5p/params"
     const playUrl = "/h5p/play";
+    const { documentId } = useParams();
+    const [model, setModel] = useState();
+
+    async function loadModel(documentId) {
+        setModel(await getModel(documentId));
+    }
 
     useEffect(() => {
         if (model) {
             loadData(model, containerName, documentId);
         } else {
-            dispatch(getEditorModelRequest(documentId));
+            // dispatch(getEditorModelRequest(documentId));
+            loadModel(documentId);
         }
-    }, [dispatch, documentId, model]);
+    }, [documentId, model]);
 
     return (
         <IonContent id={containerName}>
@@ -73,8 +95,6 @@ const appendEditorScript = (containerName, documentId) => {
     (function($) {
         H5PEditor.init = function() {
             H5PEditor.$ = H5P.jQuery;
-            // H5PEditor.basePath = '${SERVER_URL}' + H5PIntegration.editor.libraryUrl;
-            // H5PEditor.ajaxPath = '${SERVER_URL}' + H5PIntegration.editor.ajaxPath;
             H5PEditor.basePath = H5PIntegration.editor.libraryUrl;
             H5PEditor.fileIcon = H5PIntegration.editor.fileIcon;
             H5PEditor.ajaxPath = H5PIntegration.editor.ajaxPath;
@@ -88,15 +108,7 @@ const appendEditorScript = (containerName, documentId) => {
             // Required styles and scripts for the editor
             H5PEditor.assets = H5PIntegration.editor.assets;
 
-            // H5PEditor.assets.css = H5PEditor.assets.css.map((css) => '${SERVER_URL}' + css)
-            // H5PEditor.assets.js = H5PEditor.assets.js.map((js) => '${SERVER_URL}' + js)
-
-            // Required for assets
-            // H5PEditor.baseUrl = '${SERVER_URL}';
-
-            if (H5PIntegration.editor.nodeVersionId !== undefined) {
-                H5PEditor.contentId = H5PIntegration.editor.nodeVersionId;
-            }
+            H5PEditor.contentId = H5PIntegration.editor.nodeVersionId;
 
             var h5peditor;
             var $type = $('input[name="action"]');
@@ -175,9 +187,9 @@ const appendEditorScript = (containerName, documentId) => {
                         $params.val(JSON.stringify(params));
                         // TODO check if this really works
                         if (H5PEditor.contentId) {
-                            var editApiUrl = '${SERVER_URL}/h5p/edit/${documentId}'
+                            var editApiUrl = '/h5p/edit/${documentId}'
                         } else {
-                            var editApiUrl = '${SERVER_URL}/h5p/new/'
+                            var editApiUrl = '/h5p/new/'
                         }
 
                         $.ajax({
