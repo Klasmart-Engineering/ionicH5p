@@ -1,0 +1,7 @@
+{
+  "name": "ionicH5p",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
