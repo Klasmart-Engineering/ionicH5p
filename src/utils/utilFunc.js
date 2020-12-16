@@ -1,5 +1,3 @@
-import { SERVER_URL } from "../constants/constant";
-
 export const appendStyle = (style, integrity, crossOrigin) => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
@@ -12,15 +10,12 @@ export const appendStyle = (style, integrity, crossOrigin) => {
 export const appendScripts = async (scripts, elementName) => {
     for (const src of scripts) {
         const scriptPromise = new Promise((resolve, reject) => {
-            // console.log("start:" + src);
             const script = document.createElement("script");
-            // document.head.appendChild(script);
             document.getElementById(elementName).appendChild(script);
             script.onload = () => {
-                // document.head.removeChild(script);
                 document.getElementById(elementName).removeChild(script);
                 resolve();
-                console.log("finished: " + src);
+                // console.log("finished: " + src);
             };
             script.onerror = reject;
             script.async = false;
@@ -35,8 +30,7 @@ export const appendStyles = (styles, elementName) => {
         const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = style;
-        console.log(style);
-        // document.head.appendChild(link);
+        // console.log(style);
         document.getElementById(elementName).appendChild(link);
     }
 };

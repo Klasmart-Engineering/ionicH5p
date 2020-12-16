@@ -1,7 +1,7 @@
 import { IonContent } from "@ionic/react";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getEditorModelRequest } from "../actions/editorAction";
 import { appendScripts, appendStyles } from "../utils/utilFunc";
 // async function getModel(documentId) {
