@@ -18,6 +18,7 @@
 // import { File } from '@ionic-native/file/ngx';
 // import PouchDB from 'pouchdb';
 // const File = require("@ionic-native/file/ngx");
+const PouchDB = require("pouchdb");
 
 const PRECACHE = "precache-v1";
 const RUNTIME = "example-cache";
