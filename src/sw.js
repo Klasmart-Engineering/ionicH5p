@@ -24,11 +24,11 @@ const RUNTIME = "example-cache";
 
 // A list of local resources we always want to be cached.
 const PRECACHE_URLS = [
-    "index.html",
-    "./", // Alias for index.html
-    "styles.css",
-    "../../styles/main.css",
-    "demo.js",
+    // "index.html",
+    // "./", // Alias for index.html
+    // "styles.css",
+    // "../../styles/main.css",
+    // "demo.js",
 ];
 
 // The install handler takes care of precaching the resources we always need.
@@ -94,6 +94,8 @@ self.addEventListener("fetch", (event) => {
     // @ts-ignore
     event.respondWith(
         (async (event) => {
+            console.log(event.request.url)
+
             console.log("asdf");
             // eslint-disable-next-line no-undef
             // const file = new File();

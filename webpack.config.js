@@ -12,11 +12,23 @@ module.exports = {
                 exclude: /node_modules/,
             },
             {
-                test: /\.tsx?$/,
+                test: /\.ts(x?)$/,
                 use: "ts-loader",
                 exclude: /node_modules/,
             },
+            {
+                enforce: "pre",
+                test: /\.js$/,
+                loader: "source-map-loader",
+            },
+            {
+                test: /\.(scss|css)$/,
+                use: ["style-loader", "css-loader", "sass-loader"],
+            },
         ],
+    },
+    optimization: {
+        splitChunks: { chunks: "all" },
     },
     resolve: {
         modules: ["node_modules"],
@@ -28,7 +40,7 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: path.resolve(__dirname, "public", "index.html"),
+            template: path.resolve(__dirname, "src", "index.html"),
         }),
         new webpack.ProvidePlugin({
             process: "process/browser",
