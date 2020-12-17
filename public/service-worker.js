@@ -129,3 +129,4 @@ self.addEventListener("fetch", (event) => {
         })(event)
     );
 });
+// https://gist.github.com/bryandh/c22a39f22395f155123b6b82fcd5f438

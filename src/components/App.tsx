@@ -20,11 +20,11 @@ import { Redirect, Route } from "react-router-dom";
 import { applyMiddleware, compose, createStore } from "redux";
 import logger from "redux-logger";
 import createSagaMiddleware from "redux-saga";
-import Dashboard from "./pages/Dashboard";
-import Editor from "./pages/Editor";
-import Player from "./pages/Player";
-import reducer from "./reducers/rootReducer";
-import sagas from "./sagas/sagas";
+import Dashboard from "../pages/Dashboard";
+import Editor from "../pages/Editor";
+import Player from "../pages/Player";
+import reducer from "../reducers/rootReducer";
+import sagas from "../sagas/sagas";
 /* Theme variables */
 
 const sagaMiddleware = createSagaMiddleware();
