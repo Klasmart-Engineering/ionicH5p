@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-restricted-globals */
 /*
  Copyright 2016 Google Inc. All Rights Reserved.
@@ -18,6 +19,19 @@
 // import { File } from '@ionic-native/file/ngx';
 // import PouchDB from 'pouchdb';
 // const File = require("@ionic-native/file/ngx");
+importScripts(
+    "https://cdnjs.cloudflare.com/ajax/libs/localforage/1.9.0/localforage.min.js"
+);
+// importScripts(
+//     "https://cdn.jsdelivr.net/npm/localforage-cordovasqlitedriver@1.8.0/dist/localforage-cordovasqlitedriver.js"
+// );
+
+// const setupLocalforage = async () => {
+//     await localforage.defineDriver(cordovaSQLiteDriver);
+//     await localforage.setDriver([cordovaSQLiteDriver._driver, localforage.INDEXEDDB]);
+//     console.log(localforage)
+// };
+// setupLocalforage()
 
 const PRECACHE = "precache-v1";
 const RUNTIME = "example-cache";
@@ -90,42 +104,79 @@ self.addEventListener("activate", (event) => {
 //     }
 // });
 
+// self.addEventListener("fetch", (event) => {
+//     event.respondWith(
+//         (async (event) => {
+//             // eslint-disable-next-line no-undef
+//             // const db = new PouchDB("database.db", { adapter: "idb" });
+//             // const db = new PouchDB("database.db", { adapter: "cordova-sqlite" });
+//             // console.log(db);
+//             try {
+//                 const response = await fetch(event.request);
+//                 // Check if we received a valid response
+//                 if (
+//                     !response ||
+//                     response.status !== 200 ||
+//                     response.type !== "basic"
+//                 ) {
+//                     return response;
+//                 }
+
+//                 // IMPORTANT: Clone the response. A response is a stream
+//                 // and because we want the browser to consume the response
+//                 // as well as the cache consuming the response, we need
+//                 // to clone it so we have two streams.
+//                 // const cache = await caches.open(RUNTIME);
+//                 // await cache.put(event.request, response.clone());
+
+//                 // eslint-disable-next-line no-undef
+//                 const res = response.clone().blob()
+//                 // eslint-disable-next-line no-undef
+//                 localforage.setItem(event.request.url, res);
+
+//                 return response;
+//             } catch (err) {
+//                 // eslint-disable-next-line no-undef
+//                 const blob = await localforage.getItem(event.request.url);
+//                 // const response = await caches.match(event.request);
+//                 // if (response) {
+//                 if (blob) {
+//                 const response = blob.stream()
+//                 // console.log(response.clone())
+//                     return response;
+//                 }
+//             }
+//         })(event)
+//     );
+// });
+
+const cachedResponse = async (request) => {
+    try {
+        const response = await fetch(request);
+        if (!response || response.status !== 200 || response.type !== "basic") {
+            return response;
+        }
+        const res = await response.clone().blob();
+        console.log(res);
+        // eslint-disable-next-line no-undef
+        const a = await localforage.setItem(request.url, res);
+        console.log(a);
+        console.log("save");
+
+        return response;
+    } catch (err) {
+        // eslint-disable-next-line no-undef
+        const blob = await localforage.getItem(request.url);
+        console.log(blob);
+        console.log("get");
+        if (blob) {
+            return new Response(blob);
+        }
+        return new Response();
+    }
+};
+
 self.addEventListener("fetch", (event) => {
-    // @ts-ignore
-    event.respondWith(
-        (async (event) => {
-            console.log("asdf");
-            // eslint-disable-next-line no-undef
-            // const file = new File();
-            // console.log(file);
-            // eslint-disable-next-line no-undef
-            const db = new PouchDB("myDB.db", { adapter: "cordova-sqlite" });
-            console.log(db);
-            try {
-                const response = await fetch(event.request);
-                // Check if we received a valid response
-                if (
-                    !response ||
-                    response.status !== 200 ||
-                    response.type !== "basic"
-                ) {
-                    return response;
-                }
-
-                // IMPORTANT: Clone the response. A response is a stream
-                // and because we want the browser to consume the response
-                // as well as the cache consuming the response, we need
-                // to clone it so we have two streams.
-                const cache = await caches.open(RUNTIME);
-                await cache.put(event.request, response.clone());
-
-                return response;
-            } catch (err) {
-                const response = await caches.match(event.request);
-                if (response) {
-                    return response;
-                }
-            }
-        })(event)
-    );
+    event.respondWith(cachedResponse(event.request));
 });
+

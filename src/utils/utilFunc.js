@@ -11,9 +11,9 @@ export const appendScripts = async (scripts, elementName) => {
     for (const src of scripts) {
         const scriptPromise = new Promise((resolve, reject) => {
             const script = document.createElement("script");
-            document.getElementById(elementName).appendChild(script);
+            document.getElementById(elementName)?.appendChild(script);
             script.onload = () => {
-                document.getElementById(elementName).removeChild(script);
+                document.getElementById(elementName)?.removeChild(script);
                 resolve();
                 // console.log("finished: " + src);
             };

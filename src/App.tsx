@@ -27,6 +27,17 @@ import reducer from "./reducers/rootReducer";
 import sagas from "./sagas/sagas";
 /* Theme variables */
 
+// import PouchDB from 'pouchdb';
+// import cordovaSqlitePlugin from 'pouchdb-adapter-cordova-sqlite';
+// function createPouchDB() {
+//     PouchDB.plugin(cordovaSqlitePlugin);
+//     return new PouchDB('employees.db', { adapter: 'cordova-sqlite' });
+// }
+// const db = createPouchDB()
+// console.log(db)
+// const broadcast = new BroadcastChannel('count-channel');
+// broadcast.postMessage({ payload: db });
+
 const sagaMiddleware = createSagaMiddleware();
 const middleware = [sagaMiddleware, logger];
 const enhancer = compose(applyMiddleware(...middleware));

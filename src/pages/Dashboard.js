@@ -11,13 +11,13 @@ function DocumentList() {
     const documents = dashboard?.documents;
 
     // TODO maybe use material ui and build an actual dashboard page?
-    appendStyle(
-        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
-        "sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-    );
-    appendStyle(
-        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css"
-    );
+    // appendStyle(
+    //     "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
+    //     "sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+    // );
+    // appendStyle(
+    //     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css"
+    // );
 
     useEffect(() => {
         dispatch(getDocumentsRequest());
