@@ -22,16 +22,15 @@
 importScripts(
     "https://cdnjs.cloudflare.com/ajax/libs/localforage/1.9.0/localforage.min.js"
 );
-// importScripts(
-//     "https://cdn.jsdelivr.net/npm/localforage-cordovasqlitedriver@1.8.0/dist/localforage-cordovasqlitedriver.js"
-// );
+importScripts(
+    "https://cdn.jsdelivr.net/npm/localforage-cordovasqlitedriver@1.8.0/dist/localforage-cordovasqlitedriver.js"
+);
 
-// const setupLocalforage = async () => {
-//     await localforage.defineDriver(cordovaSQLiteDriver);
-//     await localforage.setDriver([cordovaSQLiteDriver._driver, localforage.INDEXEDDB]);
-//     console.log(localforage)
-// };
-// setupLocalforage()
+const setupLocalforage = async () => {
+    await localforage.defineDriver(cordovaSQLiteDriver);
+    await localforage.setDriver([cordovaSQLiteDriver._driver, localforage.INDEXEDDB]);
+};
+setupLocalforage()
 
 const PRECACHE = "precache-v1";
 const RUNTIME = "example-cache";
