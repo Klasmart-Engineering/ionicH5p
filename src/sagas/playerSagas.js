@@ -19,9 +19,6 @@ function* getModel(action) {
     }
     if (response && response.status === 200) {
         const payload = yield response.json();
-        // payload.scripts = payload.scripts.map((script) => SERVER_URL + script);
-        // payload.styles = payload.styles.map((style) => SERVER_URL + style);
-
         yield put({ type: types.GET_PLAYER_MODEL_SUCCESS, payload });
     } else {
         yield put({ type: types.GET_PLAYER_MODEL_FAILURE });

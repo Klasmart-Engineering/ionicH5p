@@ -2,22 +2,12 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { getDocumentsRequest } from "../actions/dashboardAction";
-import { appendStyle } from "../utils/utilFunc";
 import { BACKEND_BASE_URL, SERVER_URL } from "../constants/constant";
 
 function DocumentList() {
     const dispatch = useDispatch();
     const dashboard = useSelector((state) => state.dashboard);
     const documents = dashboard?.documents;
-
-    // TODO maybe use material ui and build an actual dashboard page?
-    // appendStyle(
-    //     "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
-    //     "sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-    // );
-    // appendStyle(
-    //     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css"
-    // );
 
     useEffect(() => {
         dispatch(getDocumentsRequest());
