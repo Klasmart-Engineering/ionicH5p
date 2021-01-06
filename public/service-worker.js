@@ -213,7 +213,10 @@ self.addEventListener("activate", (event) => {
 // });
 
 const cachedResponse = async (request) => {
-    if (request.url.endsWith(".js") || request.url.endsWith(".css")) {
+    if (
+        (request.url.endsWith(".js") || request.url.endsWith(".css")) &&
+        !request.url.endsWith("/service-worker.js")
+    ) {
         const blob = await localforage.getItem(request.url);
         if (blob) {
             console.log(request.url + " was pre-cached!");
