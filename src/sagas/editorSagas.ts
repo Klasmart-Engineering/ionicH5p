@@ -2,7 +2,7 @@ import { put, takeLatest } from "redux-saga/effects";
 import * as types from "../actions/types";
 import { SERVER_URL } from "../constants/constant";
 
-function* getModel(action) {
+function* getModel(action: any) {
     const url = action.params
         ? SERVER_URL + `/h5p/edit/${action.params}`
         : SERVER_URL + `/h5p/new`;
@@ -20,15 +20,10 @@ function* getModel(action) {
         console.log(e);
     }
     if (response && response.status === 200) {
-        const payload = yield response.json();
-        // payload.integration.editor.assets.css = payload.integration.editor.assets.css.map(
-        //     (style) => SERVER_URL + style
-        // );
-        // payload.integration.editor.assets.js = payload.integration.editor.assets.js.map(
-        //     (script) => SERVER_URL + script
-        // );
-        // payload.scripts = payload.scripts.map((script) => SERVER_URL + script);
-        // payload.styles = payload.styles.map((style) => SERVER_URL + style);
+        const r = yield response.json();
+        const stringData = JSON.stringify(r)
+        stringData.replace('<magical-placeholder>', SERVER_URL)
+        const payload = JSON.parse(stringData) 
 
         yield put({ type: types.GET_EDITOR_MODEL_SUCCESS, payload });
     } else {

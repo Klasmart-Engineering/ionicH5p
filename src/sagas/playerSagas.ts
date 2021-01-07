@@ -2,7 +2,7 @@ import { put, takeLatest } from "redux-saga/effects";
 import * as types from "../actions/types";
 import { SERVER_URL } from "../constants/constant";
 
-function* getModel(action) {
+function* getModel(action: any) {
     const url = SERVER_URL + `/h5p/play/${action.params}`;
 
     let response = null;
@@ -18,7 +18,10 @@ function* getModel(action) {
         console.log(e);
     }
     if (response && response.status === 200) {
-        const payload = yield response.json();
+        const r = yield response.json();
+        const stringData = JSON.stringify(r);
+        stringData.replace("<magical-placeholder>", SERVER_URL);
+        const payload = JSON.parse(stringData);
         yield put({ type: types.GET_PLAYER_MODEL_SUCCESS, payload });
     } else {
         yield put({ type: types.GET_PLAYER_MODEL_FAILURE });

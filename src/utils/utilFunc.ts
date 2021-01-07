@@ -1,15 +1,15 @@
-export const appendStyle = (style, integrity, crossOrigin) => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = style;
-    link.integrity = integrity;
-    link.crossOrigin = "anonymous";
-    document.head.appendChild(link);
-};
+// export const appendStyle = (style, integrity, crossOrigin) => {
+//     const link = document.createElement("link");
+//     link.rel = "stylesheet";
+//     link.href = style;
+//     link.integrity = integrity;
+//     link.crossOrigin = "anonymous";
+//     document.head.appendChild(link);
+// };
 
-export const appendScripts = async (scripts, elementName) => {
+export const appendScripts = async (scripts: string, elementName: string) => {
     for (const src of scripts) {
-        const scriptPromise = new Promise((resolve, reject) => {
+        const scriptPromise = new Promise<void>((resolve, reject) => {
             const script = document.createElement("script");
             document.getElementById(elementName)?.appendChild(script);
             script.onload = () => {
@@ -29,12 +29,12 @@ export const appendScripts = async (scripts, elementName) => {
     }
 };
 
-export const appendStyles = (styles, elementName) => {
+export const appendStyles = (styles: string, elementName: string) => {
     for (const style of styles) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = style;
         // console.log(style);
-        document.getElementById(elementName).appendChild(link);
+        document.getElementById(elementName)?.appendChild(link);
     }
 };

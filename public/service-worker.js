@@ -40,7 +40,9 @@ setupLocalforage();
 const PRECACHE = "precache-v1";
 const RUNTIME = "example-cache";
 
-const SERVER_URL = "https://5cf78c6e7038.ngrok.io";
+// const SERVER_URL = "https://5cf78c6e7038.ngrok.io";
+// TODO find a way to avoid redefining the server url in the service worker script
+const SERVER_URL = "http://localhost:8023";
 const ASSET_URLS = [
     "/h5p/core/js/jquery.js",
     "/h5p/core/js/h5p.js",
