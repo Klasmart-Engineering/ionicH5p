@@ -233,6 +233,5 @@ const appendEditorScript = (containerName, documentId) => {
 
     const script = document.createElement("script");
     script.innerHTML = jquery;
-    console.log(jquery)
     document.getElementById(containerName).appendChild(script);
 };

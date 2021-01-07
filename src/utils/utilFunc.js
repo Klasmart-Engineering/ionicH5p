@@ -13,7 +13,11 @@ export const appendScripts = async (scripts, elementName) => {
             const script = document.createElement("script");
             document.getElementById(elementName)?.appendChild(script);
             script.onload = () => {
-                document.getElementById(elementName)?.removeChild(script);
+                try {
+                    document.getElementById(elementName)?.removeChild(script);
+                } catch (err) {
+                    console.log(err);
+                }
                 resolve();
                 // console.log("finished: " + src);
             };

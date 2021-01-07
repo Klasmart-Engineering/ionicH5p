@@ -31,6 +31,8 @@ const setupLocalforage = async () => {
     await localforage.setDriver([
         cordovaSQLiteDriver._driver,
         localforage.INDEXEDDB,
+        localforage.WEBSQL,
+        localforage.LOCALSTORAGE,
     ]);
 };
 setupLocalforage();
@@ -88,23 +90,16 @@ const precache = async (urls) => {
     for (const url of urls) {
         try {
             const response = await fetch(url, {
-                method: "GET",
                 credentials: "include",
-                headers: new Headers({
-                    Accept: "application/json",
-                }),
+                mode: "cors",
             });
-            if (
-                !response ||
-                response.status !== 200 ||
-                response.type !== "basic"
-            ) {
+            if (!response || response.status !== 200) {
                 continue;
             }
             const res = await response.clone().blob();
             console.log(res);
             // eslint-disable-next-line no-undef
-            await localforage.setItem(url, res);
+            localforage.setItem(url, res);
             console.log("pre-cache!");
         } catch (err) {
             console.log(err);
@@ -139,79 +134,6 @@ self.addEventListener("activate", (event) => {
     );
 });
 
-// The fetch handler serves responses for same-origin resources from a cache.
-// If no response is found, it populates the runtime cache with the response
-// from the network before returning it to the page.
-// self.addEventListener("fetch", (event) => {
-//     // Skip cross-origin requests, like those for Google Analytics.
-//     if (event.request.url.startsWith(self.location.origin)) {
-//         event.respondWith(
-//             caches.match(event.request).then((cachedResponse) => {
-//                 if (cachedResponse) {
-//                     return cachedResponse;
-//                 }
-
-//                 return caches.open(RUNTIME).then((cache) => {
-//                     return fetch(event.request).then((response) => {
-//                         // Put a copy of the response in the runtime cache.
-//                         return cache
-//                             .put(event.request, response.clone())
-//                             .then(() => {
-//                                 return response;
-//                             });
-//                     });
-//                 });
-//             })
-//         );
-//     }
-// });
-
-// self.addEventListener("fetch", (event) => {
-//     event.respondWith(
-//         (async (event) => {
-//             // eslint-disable-next-line no-undef
-//             // const db = new PouchDB("database.db", { adapter: "idb" });
-//             // const db = new PouchDB("database.db", { adapter: "cordova-sqlite" });
-//             // console.log(db);
-//             try {
-//                 const response = await fetch(event.request);
-//                 // Check if we received a valid response
-//                 if (
-//                     !response ||
-//                     response.status !== 200 ||
-//                     response.type !== "basic"
-//                 ) {
-//                     return response;
-//                 }
-
-//                 // IMPORTANT: Clone the response. A response is a stream
-//                 // and because we want the browser to consume the response
-//                 // as well as the cache consuming the response, we need
-//                 // to clone it so we have two streams.
-//                 // const cache = await caches.open(RUNTIME);
-//                 // await cache.put(event.request, response.clone());
-
-//                 // eslint-disable-next-line no-undef
-//                 const res = response.clone().blob()
-//                 // eslint-disable-next-line no-undef
-//                 localforage.setItem(event.request.url, res);
-
-//                 return response;
-//             } catch (err) {
-//                 // eslint-disable-next-line no-undef
-//                 const blob = await localforage.getItem(event.request.url);
-//                 // const response = await caches.match(event.request);
-//                 // if (response) {
-//                 if (blob) {
-//                 const response = blob.stream()
-//                 // console.log(response.clone())
-//                     return response;
-//                 }
-//             }
-//         })(event)
-//     );
-// });
-
 const cachedResponse = async (request) => {
     if (
         (request.url.endsWith(".js") || request.url.endsWith(".css")) &&
@@ -225,13 +147,17 @@ const cachedResponse = async (request) => {
     }
 
     try {
-        const response = await fetch(request);
-        if (!response || response.status !== 200 || response.type !== "basic") {
+        const response = await fetch(request, {
+            credentials: "include",
+            mode: "cors",
+        });
+        // if (!response || response.status !== 200 || response.type !== "basic") {
+        if (!response || response.status !== 200) {
             return response;
         }
         const res = await response.clone().blob();
         // eslint-disable-next-line no-undef
-        await localforage.setItem(request.url, res);
+        localforage.setItem(request.url, res);
 
         return response;
     } catch (err) {
