@@ -3,31 +3,8 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { getEditorModelRequest } from "../actions/editorAction";
+import { SERVER_URL } from "../constants/constant";
 import { appendScripts, appendStyles } from "../utils/utilFunc";
-// async function getModel(documentId) {
-//     const url = !!documentId
-//         ? SERVER_URL + `/h5p/edit/${documentId}`
-//         : SERVER_URL + `/h5p/new`;
-
-//     let response = null;
-//     let payload = null;
-//     try {
-//         response = await fetch(url, {
-//             method: "GET",
-//             credentials: "include",
-//             headers: new Headers({
-//                 Accept: "application/json",
-//             }),
-//         });
-//     } catch (e) {
-//         console.log(e);
-//     }
-
-//     if (response && response.status === 200) {
-//         payload = await response.json();
-//     }
-//     return payload;
-// }
 
 async function loadData(model, containerName, documentId) {
     appendStyles(model.styles, containerName);
@@ -52,9 +29,6 @@ function Editor() {
         ? model[documentId]
         : null;
 
-    // async function loadModel(documentId) {
-    //     setModel(await getModel(documentId));
-    // }
 
     useEffect(() => {
         if (documentInfo) {
@@ -92,7 +66,10 @@ function Editor() {
 export default Editor;
 
 const appendEditorScript = (containerName, documentId) => {
-    const paramsUrl = "/h5p/params/";
+    const paramsUrl = SERVER_URL + "/h5p/params/";
+    const editApiUrl = documentId
+        ? SERVER_URL + "/h5p/edit/" + documentId
+        : SERVER_URL + "/h5p/new/";
     const jquery = `var ns = H5PEditor;
 
     (function($) {
@@ -145,9 +122,6 @@ const appendEditorScript = (containerName, documentId) => {
                         // $type.change();
                     },
                     type: 'GET',
-                    xhrFields: {
-                        withCredentials: true
-                    },
                     url: '${paramsUrl}' + H5PEditor.contentId + window.location.search,
                     xhrFields: {
                         withCredentials: true
@@ -190,11 +164,6 @@ const appendEditorScript = (containerName, documentId) => {
                         $params.val(JSON.stringify(params));
                         // TODO check if this really works
                         // if (H5PEditor.contentId) {
-                        if ('${documentId}') {
-                            var editApiUrl = '/h5p/edit/${documentId}'
-                        } else {
-                            var editApiUrl = '/h5p/new/'
-                        }
 
                         $.ajax({
                             data: JSON.stringify({
@@ -204,7 +173,7 @@ const appendEditorScript = (containerName, documentId) => {
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            url: editApiUrl,
+                            url: '${editApiUrl}',
                             type: 'POST',
                             xhrFields: {
                                 withCredentials: true
