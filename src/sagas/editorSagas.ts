@@ -1,6 +1,6 @@
 import { put, takeLatest } from "redux-saga/effects";
 import * as types from "../actions/types";
-import { SERVER_URL } from "../constants/constant";
+import { MAGICAL_PLACEHOLDER, SERVER_URL } from "../constants/constant";
 
 function* getModel(action: any) {
     const url = action.params
@@ -22,7 +22,7 @@ function* getModel(action: any) {
     if (response && response.status === 200) {
         const r = yield response.json();
         const stringData = JSON.stringify(r)
-        stringData.replace('<magical-placeholder>', SERVER_URL)
+        stringData.replace(MAGICAL_PLACEHOLDER, SERVER_URL)
         const payload = JSON.parse(stringData) 
 
         yield put({ type: types.GET_EDITOR_MODEL_SUCCESS, payload });

@@ -8,6 +8,7 @@
 // };
 
 export const appendScripts = async (scripts: string, elementName: string) => {
+    console.log(scripts)
     for (const src of scripts) {
         const scriptPromise = new Promise<void>((resolve, reject) => {
             const script = document.createElement("script");

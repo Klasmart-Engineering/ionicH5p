@@ -19,30 +19,38 @@
 // import { File } from '@ionic-native/file/ngx';
 // import PouchDB from 'pouchdb';
 // const File = require("@ionic-native/file/ngx");
-importScripts(
-    "https://cdnjs.cloudflare.com/ajax/libs/localforage/1.9.0/localforage.min.js"
-);
-importScripts(
-    "https://cdn.jsdelivr.net/npm/localforage-cordovasqlitedriver@1.8.0/dist/localforage-cordovasqlitedriver.js"
-);
+// importScripts(
+//     "https://cdnjs.cloudflare.com/ajax/libs/localforage/1.9.0/localforage.min.js"
+// );
+// importScripts(
+//     "https://cdn.jsdelivr.net/npm/localforage-cordovasqlitedriver@1.8.0/dist/localforage-cordovasqlitedriver.js"
+// );
 
-const setupLocalforage = async () => {
-    await localforage.defineDriver(cordovaSQLiteDriver);
-    await localforage.setDriver([
-        cordovaSQLiteDriver._driver,
-        localforage.INDEXEDDB,
-        localforage.WEBSQL,
-        localforage.LOCALSTORAGE,
-    ]);
-};
-setupLocalforage();
+// const setupLocalforage = async () => {
+//     await localforage.defineDriver(cordovaSQLiteDriver);
+//     await localforage.setDriver([
+//         cordovaSQLiteDriver._driver,
+//         localforage.INDEXEDDB,
+//         localforage.WEBSQL,
+//         localforage.LOCALSTORAGE,
+//     ]);
+// };
+// setupLocalforage();
+/// <reference lib="webworker" />
 
+export default null;
+declare const self: ServiceWorkerGlobalScope;
+import PouchDB from "pouchdb";
+import cordovaSqlitePlugin from "pouchdb-adapter-cordova-sqlite";
+import { SERVER_URL } from "./constants/constant";
+
+PouchDB.plugin(cordovaSqlitePlugin);
+const pouchdb = new PouchDB("myDB.db", { adapter: "cordova-sqlite" });
 const PRECACHE = "precache-v1";
 const RUNTIME = "example-cache";
 
 // const SERVER_URL = "https://5cf78c6e7038.ngrok.io";
 // TODO find a way to avoid redefining the server url in the service worker script
-const SERVER_URL = "http://localhost:8023";
 const ASSET_URLS = [
     "/h5p/core/js/jquery.js",
     "/h5p/core/js/h5p.js",
@@ -88,10 +96,10 @@ const ASSET_URLS = [
 ].map((url) => SERVER_URL + url);
 const PRECACHE_URLS = ASSET_URLS.concat(["index.html"]);
 
-const precache = async (urls) => {
+const precache = async (urls: string[]) => {
     for (const url of urls) {
         try {
-            const response = await fetch(url, {
+            const response: Response = await fetch(url, {
                 credentials: "include",
                 mode: "cors",
             });
@@ -100,8 +108,17 @@ const precache = async (urls) => {
             }
             const res = await response.clone().blob();
             console.log(res);
-            // eslint-disable-next-line no-undef
-            localforage.setItem(url, res);
+            // // eslint-disable-next-line no-undef
+            // localforage.setItem(url, res);
+            await pouchdb.put({
+                _id: url,
+                _attachments: {
+                    attachment: {
+                        content_type: res.type,
+                        data: res,
+                    },
+                },
+            });
             console.log("pre-cache!");
         } catch (err) {
             console.log(err);
@@ -110,38 +127,39 @@ const precache = async (urls) => {
 };
 
 // The install handler takes care of precaching the resources we always need.
-self.addEventListener("install", (event) => {
+self.addEventListener("install", (event: ExtendableEvent) => {
     event.waitUntil(precache(PRECACHE_URLS));
 });
 
 // The activate handler takes care of cleaning up old caches.
-self.addEventListener("activate", (event) => {
-    const currentCaches = [PRECACHE, RUNTIME];
-    event.waitUntil(
-        caches
-            .keys()
-            .then((cacheNames) => {
-                return cacheNames.filter(
-                    (cacheName) => !currentCaches.includes(cacheName)
-                );
-            })
-            .then((cachesToDelete) => {
-                return Promise.all(
-                    cachesToDelete.map((cacheToDelete) => {
-                        return caches.delete(cacheToDelete);
-                    })
-                );
-            })
-            .then(() => self.clients.claim())
-    );
-});
+// self.addEventListener("activate", (event) => {
+//     const currentCaches = [PRECACHE, RUNTIME];
+//     event.waitUntil(
+//         caches
+//             .keys()
+//             .then((cacheNames) => {
+//                 return cacheNames.filter(
+//                     (cacheName) => !currentCaches.includes(cacheName)
+//                 );
+//             })
+//             .then((cachesToDelete) => {
+//                 return Promise.all(
+//                     cachesToDelete.map((cacheToDelete) => {
+//                         return caches.delete(cacheToDelete);
+//                     })
+//                 );
+//             })
+//             .then(() => self.clients.claim())
+//     );
+// });
 
-const cachedResponse = async (request) => {
+const cachedResponse = async (request: Request): Promise<Response> => {
     if (
         (request.url.endsWith(".js") || request.url.endsWith(".css")) &&
         !request.url.endsWith("/service-worker.js")
     ) {
-        const blob = await localforage.getItem(request.url);
+        // const blob = await localforage.getItem(request.url);
+        const blob = await pouchdb.getAttachment(request.url, "attachment");
         if (blob) {
             console.log(request.url + " was pre-cached!");
             return new Response(blob);
@@ -159,11 +177,21 @@ const cachedResponse = async (request) => {
         }
         const res = await response.clone().blob();
         // eslint-disable-next-line no-undef
-        localforage.setItem(request.url, res);
+        // localforage.setItem(request.url, res);
+        await pouchdb.put({
+            _id: request.url,
+            _attachments: {
+                attachment: {
+                    content_type: res.type,
+                    data: res,
+                },
+            },
+        });
 
         return response;
     } catch (err) {
-        const blob = await localforage.getItem(request.url);
+        // const blob = await localforage.getItem(request.url);
+        const blob = await pouchdb.getAttachment(request.url, "attachment");
         if (blob) {
             return new Response(blob);
         }
@@ -171,6 +199,6 @@ const cachedResponse = async (request) => {
     }
 };
 
-self.addEventListener("fetch", (event) => {
+self.addEventListener("fetch", (event: FetchEvent): void => {
     event.respondWith(cachedResponse(event.request));
 });

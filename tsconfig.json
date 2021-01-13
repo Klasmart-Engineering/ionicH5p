@@ -5,7 +5,8 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "esnext",
+      "webworker"
     ],
     "sourceMap": true,
     "allowJs": true,
@@ -20,10 +21,13 @@
     "isolatedModules": true,
     "jsx": "react",
     "noFallthroughCasesInSwitch": true,
-    "noEmit": true
   },
   "include": [
     "src",
     "testing"
+  ],
+  "exclude": [
+    "/**/*.d.ts",
+    "node_modules"
   ]
 }

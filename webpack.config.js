@@ -7,13 +7,17 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(js|jsx)$/,
-                use: ["babel-loader"],
-                exclude: /node_modules/,
+                test: /\.ts(x?)$/,
+                use: [{
+                    loader: 'ts-loader',
+                    options: {
+                        configFile: "tsconfig.json"
+                    }
+                }],
             },
             {
-                test: /\.ts(x?)$/,
-                use: "ts-loader",
+                test: /\.(js|jsx)$/,
+                use: ["babel-loader"],
                 exclude: /node_modules/,
             },
             {
