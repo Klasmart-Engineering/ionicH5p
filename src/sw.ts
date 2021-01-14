@@ -40,12 +40,19 @@
 
 export default null;
 declare const self: ServiceWorkerGlobalScope;
+import { Capacitor } from "@capacitor/core";
 import PouchDB from "pouchdb";
 import cordovaSqlitePlugin from "pouchdb-adapter-cordova-sqlite";
 import { SERVER_URL } from "./constants/constant";
 
-PouchDB.plugin(cordovaSqlitePlugin);
-const pouchdb = new PouchDB("myDB.db", { adapter: "cordova-sqlite" });
+let pouchdb: PouchDB.Database;
+if (Capacitor.isNative) {
+    PouchDB.plugin(cordovaSqlitePlugin);
+    pouchdb = new PouchDB("myDB.db", { adapter: "cordova-sqlite" });
+} else {
+    pouchdb = new PouchDB("myDB.db");
+}
+
 const PRECACHE = "precache-v1";
 const RUNTIME = "example-cache";
 

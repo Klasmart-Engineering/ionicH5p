@@ -3,20 +3,14 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 
 module.exports = {
-    entry: "./src/index.tsx",
+    entry: {
+        main: "./src/index.tsx",
+        sw: "./src/sw.ts",
+    },
     module: {
         rules: [
             {
-                test: /\.ts(x?)$/,
-                use: [{
-                    loader: 'ts-loader',
-                    options: {
-                        configFile: "tsconfig.json"
-                    }
-                }],
-            },
-            {
-                test: /\.(js|jsx)$/,
+                test: /\.(js|jsx|ts|tsx)$/,
                 use: ["babel-loader"],
                 exclude: /node_modules/,
             },
