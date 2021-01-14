@@ -5,4 +5,4 @@ export const SERVER_URL = "http://localhost:8023";
 // export const ORIGIN_URL = window.location.origin;
 export const BACKEND_BASE_URL = "/h5p";
 export const PLAY_URL = "/play";
-export const MAGICAL_PLACEHOLDER = "<magical-placeholder>";
+// export const MAGICAL_PLACEHOLDER = "<magical-placeholder>";
