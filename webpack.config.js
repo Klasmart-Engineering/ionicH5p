@@ -1,11 +1,12 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
+const { InjectManifest } = require("workbox-webpack-plugin");
 
 module.exports = {
     entry: {
         main: "./src/index.tsx",
-        sw: "./src/sw.ts",
+        // sw: "./src/sw.ts",
     },
     module: {
         rules: [
@@ -40,9 +41,12 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, "src", "index.html"),
         }),
-        new webpack.ProvidePlugin({
-            process: "process/browser",
+        new InjectManifest({
+            swSrc: path.resolve(__dirname, "src", "sw.js"),
         }),
+        // new webpack.ProvidePlugin({
+        //     process: "process/browser",
+        // }),
     ],
     devtool: "inline-source-map",
     devServer: {

@@ -1,38 +1,15 @@
-// import { File } from '@ionic-native/file/ngx';
-// import PouchDB from 'pouchdb';
-// const File = require("@ionic-native/file/ngx");
-// importScripts(
-//     "https://cdnjs.cloudflare.com/ajax/libs/localforage/1.9.0/localforage.min.js"
-// );
-// importScripts(
-//     "https://cdn.jsdelivr.net/npm/localforage-cordovasqlitedriver@1.8.0/dist/localforage-cordovasqlitedriver.js"
-// );
-
-// const setupLocalforage = async () => {
-//     await localforage.defineDriver(cordovaSQLiteDriver);
-//     await localforage.setDriver([
-//         cordovaSQLiteDriver._driver,
-//         localforage.INDEXEDDB,
-//         localforage.WEBSQL,
-//         localforage.LOCALSTORAGE,
-//     ]);
-// };
-// setupLocalforage();
-
-/// <reference lib="webworker" />
-
 import { Capacitor } from "@capacitor/core";
 import PouchDB from "pouchdb";
 import cordovaSqlitePlugin from "pouchdb-adapter-cordova-sqlite";
+import { precacheAndRoute } from "workbox-precaching";
 import { SERVER_URL } from "./constants/constant";
+import upsert from "pouchdb-upsert";
+import { get } from "@ionic-native/core/decorators/common";
 
-// export default null;
-declare const self: ServiceWorkerGlobalScope;
-// const serviceWorker = self.navigator.serviceWorker as ServiceWorkerGlobalScope
-// const clients = serviceWorker.clients
-console.log(self.navigator.serviceWorker)
+precacheAndRoute(self.__WB_MANIFEST);
 
-let pouchdb: PouchDB.Database;
+let pouchdb;
+PouchDB.plugin(upsert);
 if (Capacitor.isNative) {
     PouchDB.plugin(cordovaSqlitePlugin);
     pouchdb = new PouchDB("myDB.db", { adapter: "cordova-sqlite" });
@@ -41,7 +18,6 @@ if (Capacitor.isNative) {
     pouchdb = new PouchDB("myDB.db");
     console.log("running on the browser");
 }
-
 
 // const PRECACHE = "precache-v1";
 // const RUNTIME = "example-cache";
@@ -92,10 +68,11 @@ const ASSET_URLS = [
 ].map((url) => SERVER_URL + url);
 const PRECACHE_URLS = ASSET_URLS.concat(["index.html"]);
 
-const precache = async (urls: string[]) => {
+const precache = async (urls) => {
     for (const url of urls) {
+        console.log(url);
         try {
-            const response: Response = await fetch(url, {
+            const response = await fetch(url, {
                 credentials: "include",
                 mode: "cors",
             });
@@ -106,7 +83,7 @@ const precache = async (urls: string[]) => {
             console.log(res);
             // // eslint-disable-next-line no-undef
             // localforage.setItem(url, res);
-            await pouchdb.put({
+            await pouchdb.putIfNotExists({
                 _id: url,
                 _attachments: {
                     attachment: {
@@ -117,29 +94,36 @@ const precache = async (urls: string[]) => {
             });
             console.log("pre-cache!");
         } catch (err) {
+            console.log("error");
             console.log(err);
         }
     }
 };
 
 // The install handler takes care of precaching the resources we always need.
-self.addEventListener("install", (event: ExtendableEvent) => {
+self.addEventListener("install", (event) => {
     console.log("install");
     event.waitUntil(precache(PRECACHE_URLS));
 });
 
-self.addEventListener("activate", (event: ExtendableEvent) => {
+self.addEventListener("activate", (event) => {
     console.log("Claiming control");
-    event.waitUntil(self.clients.claim())
+    event.waitUntil(self.clients.claim());
 });
 
-const cachedResponse = async (request: Request): Promise<Response> => {
+const cachedResponse = async (request) => {
     if (request.url.endsWith(".js") || request.url.endsWith(".css")) {
         // const blob = await localforage.getItem(request.url);
-        const blob = await pouchdb.getAttachment(request.url, "attachment");
-        if (blob) {
-            console.log(request.url + " was pre-cached!");
+        // const blob = await pouchdb.getAttachment(request.url, "attachment");
+        // if (blob) {
+        //     console.log(request.url + " was pre-cached!");
+        //     return new Response(blob);
+        // }
+        try {
+            const blob = await getFromPouch(request);
             return new Response(blob);
+        } catch (err) {
+            console.log(err);
         }
     }
 
@@ -155,7 +139,7 @@ const cachedResponse = async (request: Request): Promise<Response> => {
         const res = await response.clone().blob();
         // eslint-disable-next-line no-undef
         // localforage.setItem(request.url, res);
-        await pouchdb.put({
+        await pouchdb.putIfNotExists({
             _id: request.url,
             _attachments: {
                 attachment: {
@@ -168,15 +152,31 @@ const cachedResponse = async (request: Request): Promise<Response> => {
         return response;
     } catch (err) {
         // const blob = await localforage.getItem(request.url);
-        const blob = await pouchdb.getAttachment(request.url, "attachment");
-        if (blob) {
+        // const blob = await pouchdb.getAttachment(request.url, "attachment");
+        // if (blob) {
+        //     return new Response(blob);
+        // }
+        // return new Response();
+        try {
+            const blob = await getFromPouch(request);
             return new Response(blob);
+        } catch (err) {
+            console.log(err);
+            return new Response();
         }
-        return new Response();
     }
 };
 
-self.addEventListener("fetch", (event: FetchEvent): void => {
+self.addEventListener("fetch", (event) => {
     console.log("fetch");
     event.respondWith(cachedResponse(event.request));
 });
+
+async function getFromPouch(request) {
+    const bin = await pouchdb.get(request.url, {
+        attachments: true,
+        binary: true,
+    });
+    console.log(bin);
+    return bin._attachments["attachment"].data;
+}
