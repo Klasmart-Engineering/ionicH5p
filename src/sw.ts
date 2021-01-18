@@ -112,14 +112,15 @@ const cachedResponse = async (request: Request) => {
         // }
     } catch (err) {
         console.log(err);
+        console.log(blob);
     }
 
     if (
-        (blob &&
-            (request.url.endsWith(".js") ||
-                request.url.endsWith(".css") ||
-                request.url.endsWith(".png")) ||
-        request.url.includes("/h5p/libraries/"))
+        blob &&
+        (request.url.endsWith(".js") ||
+            request.url.endsWith(".css") ||
+            request.url.endsWith(".png") ||
+            request.url.includes("/h5p/libraries/"))
     ) {
         console.log(request.url + " was pre-cached!");
         return new Response(blob);
