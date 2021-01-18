@@ -42,7 +42,7 @@ module.exports = {
             template: path.resolve(__dirname, "src", "index.html"),
         }),
         new InjectManifest({
-            swSrc: path.resolve(__dirname, "src", "sw.js"),
+            swSrc: path.resolve(__dirname, "src", "sw.ts"),
         }),
         // new webpack.ProvidePlugin({
         //     process: "process/browser",
