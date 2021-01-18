@@ -4,13 +4,12 @@ import PouchDB from "pouchdb";
 import cordovaSqlitePlugin from "pouchdb-adapter-cordova-sqlite";
 import { precacheAndRoute } from "workbox-precaching";
 import { SERVER_URL } from "./constants/constant";
-import upsert from "pouchdb-upsert";
 
 declare const self: ServiceWorkerGlobalScope;
 precacheAndRoute(self.__WB_MANIFEST);
 
 let pouchdb: PouchDB.Database;
-PouchDB.plugin(upsert);
+
 if (Capacitor.isNative) {
     PouchDB.plugin(cordovaSqlitePlugin);
     pouchdb = new PouchDB("myDB.db", { adapter: "cordova-sqlite" });
@@ -19,9 +18,6 @@ if (Capacitor.isNative) {
     pouchdb = new PouchDB("myDB.db");
     console.log("running on the browser");
 }
-
-// const PRECACHE = "precache-v1";
-// const RUNTIME = "example-cache";
 
 // TODO find a way to avoid redefining the server url in the service worker script
 const ASSET_URLS = [
@@ -72,27 +68,13 @@ const PRECACHE_URLS = ASSET_URLS.concat(["index.html"]);
 const precache = async (urls: string[]) => {
     for (const url of urls) {
         console.log(url);
+        const req = new Request(url);
+        const response = await fetch(req, {
+            credentials: "include",
+            mode: "cors",
+        });
         try {
-            const response = await fetch(url, {
-                credentials: "include",
-                mode: "cors",
-            });
-            if (!response || response.status !== 200) {
-                continue;
-            }
-            const res = await response.clone().blob();
-            console.log(res);
-            // // eslint-disable-next-line no-undef
-            // localforage.setItem(url, res);
-            await pouchdb.putIfNotExists({
-                _id: url,
-                _attachments: {
-                    attachment: {
-                        content_type: res.type,
-                        data: res,
-                    },
-                },
-            });
+            await putAttachment(req.url, response);
             console.log("pre-cache!");
         } catch (err) {
             console.log("error");
@@ -113,19 +95,34 @@ self.addEventListener("activate", (event) => {
 });
 
 const cachedResponse = async (request: Request) => {
-    if (request.url.endsWith(".js") || request.url.endsWith(".css")) {
-        // const blob = await localforage.getItem(request.url);
-        // const blob = await pouchdb.getAttachment(request.url, "attachment");
+    let blob = null;
+    try {
+        // const data = await getAttachmentFromPouch(request.url);
+        const data = await pouchdb.get(request.url, {
+            attachments: true,
+            binary: true,
+        });
+        const attachment = data._attachments
+            ?.attachment as PouchDB.Core.FullAttachment;
+        blob = attachment.data;
+        // blob = await localforage.getItem(request.url);
         // if (blob) {
         //     console.log(request.url + " was pre-cached!");
         //     return new Response(blob);
         // }
-        try {
-            const blob = await getFromPouch(request);
-            return new Response(blob);
-        } catch (err) {
-            console.log(err);
-        }
+    } catch (err) {
+        console.log(err);
+    }
+
+    if (
+        (blob &&
+            (request.url.endsWith(".js") ||
+                request.url.endsWith(".css") ||
+                request.url.endsWith(".png")) ||
+        request.url.includes("/h5p/libraries/"))
+    ) {
+        console.log(request.url + " was pre-cached!");
+        return new Response(blob);
     }
 
     try {
@@ -133,38 +130,15 @@ const cachedResponse = async (request: Request) => {
             credentials: "include",
             mode: "cors",
         });
-        // if (!response || response.status !== 200 || response.type !== "basic") {
+
         if (!response || response.status !== 200) {
             return response;
         }
-        const res = await response.clone().blob();
-        // eslint-disable-next-line no-undef
-        // localforage.setItem(request.url, res);
-        await pouchdb.putIfNotExists({
-            _id: request.url,
-            _attachments: {
-                attachment: {
-                    content_type: res.type,
-                    data: res,
-                },
-            },
-        });
-
-        return response;
+        // const res = await response.clone().blob();
+        // const blob = await localforage.setItem(request.url, res);
+        return await putAttachment(request.url, response);
     } catch (err) {
-        // const blob = await localforage.getItem(request.url);
-        // const blob = await pouchdb.getAttachment(request.url, "attachment");
-        // if (blob) {
-        //     return new Response(blob);
-        // }
-        // return new Response();
-        try {
-            const blob = await getFromPouch(request);
-            return new Response(blob);
-        } catch (err) {
-            console.log(err);
-            return new Response();
-        }
+        return new Response(blob);
     }
 };
 
@@ -173,13 +147,44 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(cachedResponse(event.request));
 });
 
-async function getFromPouch(request: Request) {
-    const bin = await pouchdb.get(request.url, {
-        attachments: true,
-        binary: true,
+// async function getAttachmentFromPouch(
+//     url: string
+// ): Promise<PouchDB.Core.GetMeta> {
+//     return await pouchdb.get(url, {
+//         attachments: true,
+//         binary: true,
+//     });
+// }
+
+async function putAttachment(
+    url: string,
+    response: Response
+): Promise<Response> {
+    let rev;
+    try {
+        const data = await pouchdb.get(url, {
+            attachments: true,
+            binary: true,
+        });
+        // const data = await getAttachmentFromPouch(url);
+        rev = data?._rev;
+        console.log(data);
+    } catch (err) {
+        console.log("no precached data for " + url);
+        console.log(err);
+    }
+
+    const clone = response.clone();
+    const data = await clone.blob();
+    await pouchdb.put({
+        _id: url,
+        _rev: rev,
+        _attachments: {
+            attachment: {
+                content_type: data.type,
+                data: data,
+            },
+        },
     });
-    console.log(bin);
-    console.log('what')
-    console.log(bin._attachments?.attachment);
-    return (bin._attachments?.attachment as PouchDB.Core.FullAttachment).data;
+    return response;
 }

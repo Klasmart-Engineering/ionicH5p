@@ -6,7 +6,6 @@ const { InjectManifest } = require("workbox-webpack-plugin");
 module.exports = {
     entry: {
         main: "./src/index.tsx",
-        // sw: "./src/sw.ts",
     },
     module: {
         rules: [
@@ -43,10 +42,8 @@ module.exports = {
         }),
         new InjectManifest({
             swSrc: path.resolve(__dirname, "src", "sw.ts"),
+            maximumFileSizeToCacheInBytes: 15 * 1024 * 1024
         }),
-        // new webpack.ProvidePlugin({
-        //     process: "process/browser",
-        // }),
     ],
     devtool: "inline-source-map",
     devServer: {
