@@ -63,7 +63,8 @@ const ASSET_URLS = [
     "/h5p/libraries/H5P.JoubelUI-1.3/css/joubel-ui.css",
     "/h5p/libraries/H5P.JoubelUI-1.3/css/joubel-icon.css",
 ].map((url) => SERVER_URL + url);
-const PRECACHE_URLS = ASSET_URLS.concat(["index.html"]);
+// const PRECACHE_URLS = ASSET_URLS.concat(["index.html"]);
+const PRECACHE_URLS = ASSET_URLS
 
 const precache = async (urls: string[]) => {
     for (const url of urls) {
@@ -84,12 +85,12 @@ const precache = async (urls: string[]) => {
 };
 
 // The install handler takes care of precaching the resources we always need.
-self.addEventListener("install", (event) => {
+self.addEventListener("install", (event: ExtendableEvent) => {
     console.log("install");
     event.waitUntil(precache(PRECACHE_URLS));
 });
 
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", (event: ExtendableEvent) => {
     console.log("Claiming control");
     event.waitUntil(self.clients.claim());
 });
@@ -97,7 +98,6 @@ self.addEventListener("activate", (event) => {
 const cachedResponse = async (request: Request) => {
     let blob = null;
     try {
-        // const data = await getAttachmentFromPouch(request.url);
         const data = await pouchdb.get(request.url, {
             attachments: true,
             binary: true,
@@ -112,7 +112,6 @@ const cachedResponse = async (request: Request) => {
         // }
     } catch (err) {
         console.log(err);
-        console.log(blob);
     }
 
     if (
@@ -143,19 +142,10 @@ const cachedResponse = async (request: Request) => {
     }
 };
 
-self.addEventListener("fetch", (event) => {
+self.addEventListener("fetch", (event: FetchEvent) => {
     console.log("fetch");
     event.respondWith(cachedResponse(event.request));
 });
-
-// async function getAttachmentFromPouch(
-//     url: string
-// ): Promise<PouchDB.Core.GetMeta> {
-//     return await pouchdb.get(url, {
-//         attachments: true,
-//         binary: true,
-//     });
-// }
 
 async function putAttachment(
     url: string,
@@ -167,7 +157,6 @@ async function putAttachment(
             attachments: true,
             binary: true,
         });
-        // const data = await getAttachmentFromPouch(url);
         rev = data?._rev;
         console.log(data);
     } catch (err) {
