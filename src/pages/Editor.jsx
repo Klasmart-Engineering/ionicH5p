@@ -17,6 +17,11 @@ async function loadData(model, containerName, documentId) {
     document.getElementById(containerName).appendChild(script);
     await appendScripts(model.scripts, containerName);
     appendEditorScript(containerName, documentId);
+
+    // const frame = document.getElementById('h5p-editor-iframe')
+    // if (frame) {
+    //     frame.setAttribute('src', window.location.origin)
+    // }
 }
 
 function Editor() {

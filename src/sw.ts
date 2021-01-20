@@ -64,16 +64,18 @@ const ASSET_URLS = [
     "/h5p/libraries/H5P.JoubelUI-1.3/css/joubel-icon.css",
 ].map((url) => SERVER_URL + url);
 // const PRECACHE_URLS = ASSET_URLS.concat(["index.html"]);
-const PRECACHE_URLS = ASSET_URLS
+const PRECACHE_URLS = ASSET_URLS;
 
 const precache = async (urls: string[]) => {
     for (const url of urls) {
         console.log(url);
         const req = new Request(url);
-        const response = await fetch(req, {
-            credentials: "include",
-            mode: "cors",
-        });
+        const options = {
+            credentials: "include" as RequestCredentials,
+            mode: "cors" as RequestMode,
+        };
+        const response = await fetch(req, options);
+        // const response = await fetch(req);
         try {
             await putAttachment(req.url, response);
             console.log("pre-cache!");
@@ -124,18 +126,30 @@ const cachedResponse = async (request: Request) => {
         console.log(request.url + " was pre-cached!");
         return new Response(blob);
     }
+    console.log(request.url);
 
     try {
-        const response = await fetch(request, {
-            credentials: "include",
-            mode: "cors",
-        });
+        const options = {
+            credentials: "same-origin" as RequestCredentials,
+            mode: "cors" as RequestMode,
+        };
+        if (request.url.includes("https://h5p.org/sites/default/files/")) {
+            options.mode = "no-cors";
+        } else if (request.url.includes(SERVER_URL)) {
+            options.credentials = "include" as RequestCredentials;
+        }
+
+        const response = await fetch(request, options);
+        // const response = await fetch(request);
 
         if (!response || response.status !== 200) {
+            console.log(response);
+            console.log("whaaa");
             return response;
         }
         // const res = await response.clone().blob();
         // const blob = await localforage.setItem(request.url, res);
+        console.log("hahahaha");
         return await putAttachment(request.url, response);
     } catch (err) {
         return new Response(blob);
@@ -166,7 +180,7 @@ async function putAttachment(
 
     const clone = response.clone();
     const data = await clone.blob();
-    await pouchdb.put({
+    const res = await pouchdb.put({
         _id: url,
         _rev: rev,
         _attachments: {
@@ -176,5 +190,6 @@ async function putAttachment(
             },
         },
     });
+    console.log(res);
     return response;
 }
