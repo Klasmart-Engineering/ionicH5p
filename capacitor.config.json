@@ -1,13 +1,16 @@
 {
-  "appId": "io.ionic.starter",
-  "appName": "ionicH5p",
-  "bundledWebRuntime": false,
-  "npmClient": "npm",
-  "webDir": "build",
-  "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 0
-    }
-  },
-  "cordova": {}
+    "appId": "h5p-capacitor",
+    "appName": "h5p-frontend",
+    "bundledWebRuntime": false,
+    "npmClient": "npm",
+    "webDir": "build",
+    "plugins": {
+        "SplashScreen": {
+            "launchShowDuration": 0
+        }
+    },
+    "android": {
+        "allowMixedContent": true
+    },
+    "cordova": {}
 }
