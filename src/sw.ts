@@ -69,12 +69,6 @@ const EDITOR_SCRIPT_URLS = [
     "/h5p/editor/ckeditor/ckeditor.js",
 ].map((url) => SERVER_URL + url);
 
-const FULL_PATH_URLS = [
-    "https://h5p.org/sites/default/files/interactive%20video.svg",
-    "https://h5p.org/sites/default/files/question-set.svg",
-
-];
-
 const LIBRARIES_URLS = [
     "/h5p/libraries/H5P.Transition-1.0/transition.js",
     "/h5p/libraries/Tether-1.0/scripts/tether.min.js",
@@ -119,15 +113,17 @@ const PRECACHE_URLS = [
 const precache = async (urls: string[]) => {
     for (const url of urls) {
         console.log(url);
-        const request = new Request(url)
-        const options = {
-            credentials: "same-origin" as RequestCredentials,
-            mode: "cors" as RequestMode,
-        };
-        if (request.url.includes("https://h5p.org/sites/default/files/")) {
-            options.mode = "no-cors";
-        }
-        const response = await fetch(request, options);
+        const request = new Request(url);
+        // const options = {
+        //     credentials: "same-origin" as RequestCredentials,
+        //     mode: "cors" as RequestMode,
+        // };
+        // if (request.url.includes("https://h5p.org/sites/default/files/")) {
+        //     options.mode = "no-cors";
+        //     options.credentials = "omit";
+        // }
+        // const response = await fetch(request, options);
+        const response = await fetch(request);
         try {
             await putAttachment(request.url, response);
             console.log("pre-cache!");
@@ -182,18 +178,19 @@ const cachedResponse = async (request: Request) => {
     console.log(request.url);
 
     try {
-        const options = {
-            credentials: "same-origin" as RequestCredentials,
-            mode: "cors" as RequestMode,
-        };
-        if (request.url.includes("https://h5p.org/sites/default/files/")) {
-            options.mode = "no-cors";
-        } else if (request.url.includes(SERVER_URL)) {
-            options.credentials = "include" as RequestCredentials;
-        }
+        // const options = {
+        //     credentials: "same-origin" as RequestCredentials,
+        //     mode: "cors" as RequestMode,
+        //     referrerPolicy: "origin" as ReferrerPolicy,
+        // };
+        // if (request.url.includes("https://h5p.org/sites/default/files/")) {
+        //     options.mode = "no-cors";
+        // } else if (request.url.includes(SERVER_URL)) {
+        //     options.credentials = "include" as RequestCredentials;
+        // }
 
-        const response = await fetch(request, options);
-        // const response = await fetch(request);
+        // const response = await fetch(request, options);
+        const response = await fetch(request);
 
         // if (!response || response.status !== 200) {
         //     console.log(response);
@@ -217,13 +214,13 @@ async function putAttachment(
     url: string,
     response: Response
 ): Promise<Response> {
-    let rev;
+    let _rev;
     try {
         const meta = await pouchdb.get(url, {
             attachments: true,
             binary: true,
         });
-        rev = meta?._rev;
+        _rev = meta?._rev;
         console.log(meta);
     } catch (err) {
         console.log("no precached data for " + url);
@@ -232,16 +229,18 @@ async function putAttachment(
 
     const clone = response.clone();
     const blob = await clone.blob();
-    const res = await pouchdb.put({
-        _id: url,
-        _rev: rev,
-        _attachments: {
-            attachment: {
-                content_type: blob.type,
-                data: blob,
+    if (blob.type) {
+        const res = await pouchdb.put({
+            _id: url,
+            _attachments: {
+                attachment: {
+                    content_type: blob.type,
+                    data: blob,
+                },
             },
-        },
-    });
-    console.log(res);
+            _rev,
+        });
+        console.log(res);
+    }
     return response;
 }
